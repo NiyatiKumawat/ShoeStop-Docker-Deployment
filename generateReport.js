@@ -251,10 +251,10 @@ async function createReport() {
         <div class="meta-value">ShoeStop Containerization &amp; Cloud Deployment</div>
 
         <div class="meta-label">Learner Name:</div>
-        <div class="meta-value">[LEARNER NAME]</div>
+        <div class="meta-value">Niyati Kumawat</div>
 
         <div class="meta-label">Learner ID:</div>
-        <div class="meta-value">[LEARNER ID]</div>
+        <div class="meta-value"></div>
 
         <div class="meta-label">Cloud Platform Used:</div>
         <div class="meta-value">GitHub Pages Cloud &amp; Render Cloud Platform</div>
