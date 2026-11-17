@@ -90,8 +90,9 @@ jobs:
         working-directory: frontend
         env:
           VITE_BASE_PATH: /ShoeStop-Docker-Deployment/
-          VITE_API_URL: https://shoestop-backend.onrender.com
-        run: npm run build
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html || true
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4

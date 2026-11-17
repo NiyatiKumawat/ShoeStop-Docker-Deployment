@@ -11,32 +11,22 @@ import Login from './component/login/Login'
 import NavbarLog from './component/navbar/NavbarLog'
 
 const App = () => {
-
   const hasToken = !!localStorage.getItem('token');
 
   return (
-    <div>
-      {hasToken ? (
-            <NavbarLog />
-          ) : (
-            <Navbar />
-          )}
-      
-      <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
+    <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
+      <div>
+        {hasToken ? <NavbarLog /> : <Navbar />}
         <Routes>
-        {hasToken ? (
-            <Route path="/" element={<Home/>} />
-          ) : (
-            <Route path="/" element={<Login />} />
-          )}
-          <Route exact path='/home' element={<Home />}></Route>
-
-          <Route path='/cart' element={<Cart />}></Route>
-          <Route path='/signup' element={<Signup/>} ></Route>
-          <Route path='/login' element={<Login/>} ></Route>
+          <Route path="/" element={hasToken ? <Home /> : <Login />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Home />} />
         </Routes>
-      </BrowserRouter>
-    </div>
+      </div>
+    </BrowserRouter>
   )
 }
 
