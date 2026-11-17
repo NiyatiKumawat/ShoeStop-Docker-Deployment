@@ -1,0 +1,106 @@
+name: ShoeStop CI/CD Pipeline & Cloud Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+# Permissions required for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # Job 1: Docker Multi-Container Build, Orchestration & Verification
+  # ----------------------------------------------------------------------------
+  docker-build-and-test:
+    name: Docker Containerization & Health Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Verify Docker Compose Configuration
+        run: |
+          docker compose config
+
+      - name: Build Docker Images (Backend & Frontend Multi-Stage)
+        run: |
+          docker compose build
+
+      - name: Start Multi-Container Architecture (MongoDB, Backend, Frontend)
+        run: |
+          docker compose up -d
+
+      - name: Verify Running Containers
+        run: |
+          docker compose ps
+
+      - name: Wait for Backend Health Check
+        run: |
+          timeout 60 bash -c 'until curl -s http://localhost:5000/health | grep -q "ok"; do sleep 3; done'
+          echo "Backend health check succeeded!"
+
+      - name: Verify Application API & Seeding
+        run: |
+          curl -s http://localhost:5000/api/getproducts | jq '.[0]'
+          echo "Product catalog verified successfully!"
+
+      - name: Stop and Teardown Containers
+        run: |
+          docker compose down -v
+
+  # ----------------------------------------------------------------------------
+  # Job 2: Production Build & Cloud Deployment (GitHub Pages)
+  # ----------------------------------------------------------------------------
+  deploy-cloud-frontend:
+    name: Build & Deploy Frontend to Cloud
+    needs: docker-build-and-test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Production Assets
+        working-directory: frontend
+        env:
+          VITE_BASE_PATH: /ShoeStop-Docker-Deployment/
+          VITE_API_URL: https://shoestop-backend.onrender.com
+        run: npm run build
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'frontend/dist'
+
+      - name: Deploy to GitHub Pages Cloud
+        id: deployment
+        uses: actions/deploy-pages@v4

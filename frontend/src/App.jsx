@@ -22,7 +22,7 @@ const App = () => {
             <Navbar />
           )}
       
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
         <Routes>
         {hasToken ? (
             <Route path="/" element={<Home/>} />
